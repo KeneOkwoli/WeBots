@@ -82,7 +82,9 @@ static int readIR(sensor_value){
 /* we have 8 IR sensors, code to read one sensor, can you read all 8 without repetition */
 int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 
-return IR_value;}
+return IR_value;
+
+}
 
 
 
@@ -95,7 +97,6 @@ int main() {
   initialize();
   while (wb_robot_step(time_step) != -1) {
     move(10,1);
-  }
   
   int j = 0;
   for (j = 0; j < 8; j++){
@@ -103,5 +104,6 @@ int main() {
     printf("readIR: %d\n ", readIR(j));
   }
 
+}
   return 0;
 }
