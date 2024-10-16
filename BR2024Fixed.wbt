@@ -1,0 +1,48 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/k-team/khepera3/protos/Khepera3.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.050206822479520456 -0.00438112622020165 0.9987292329303036 2.7184705605423174
+  position 1.8031898752799915 -0.3499510513765237 0.20285025574370008
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 50 50
+  floorTileSize 50 50
+  floorAppearance Appearance {
+    texture ImageTexture {
+      url [
+        "floor.jpg"
+      ]
+    }
+  }
+}
+Khepera3 {
+  hidden position_0_0 96.14461766572376
+  hidden position_0_1 127.40545484155908
+  hidden linearVelocity_0 0.017732349246218 0.026116095635717648 -4.728716984884736e-09
+  hidden angularVelocity_0 -1.315940781224884e-06 1.8344656804850636e-06 0.2314522513367035
+  hidden rotation_1 0.16020349216392138 -0.16020355921414287 0.9739967457407672 4.6860447610595255
+  hidden linearVelocity_1 0.013075338520772787 0.016257220565978336 4.530163954397791e-08
+  hidden angularVelocity_1 -0.779350241315601 0.6266019439254513 0.2320968240921418
+  hidden rotation_2 -0.08506271622905046 0.08506277994511362 -0.9927379602774064 1.578084744907018
+  hidden linearVelocity_2 0.026363318915595155 0.03278012506977201 -6.357642153207655e-09
+  hidden angularVelocity_2 -1.5583830082372676 1.253592711490729 0.23373512783429518
+  translation 1.4896880578282314 -0.029586736948005718 -0.0035183273112367464
+  rotation 0.0004627889567464068 -0.001138522867284072 -0.9999992447957459 -0.8974148842022851
+  controller "base"
+  turretSlot [
+    Camera {
+      translation 0 0 0.08
+    }
+  ]
+}
