@@ -75,7 +75,8 @@ static void initialize() {
     /*  Your code under here. Don't touch the above, unless you are happy to fix it yourself! it. */
 
 
-
+int Blue_val = 0;
+int water = 0;
 
 
 static int readIR(sensor_value){
@@ -105,9 +106,9 @@ for (x = 0; x < width; x++){
 
 red = red/4096;  
 blue = blue/4096;
-green = green/4096  
-printf("red=%d,green=%d,blue=%d\n",red,green,blue;
-
+green = green/4096;
+printf("red=%d,green=%d,blue=%d\n",red,green,blue);
+Blue_val = blue;
 }
 
 
@@ -115,24 +116,31 @@ static void move(int l,int r){
     wb_motor_set_velocity(left_motor, l);
     wb_motor_set_velocity(right_motor, r);}
 
-// int thst = 1000;    
-// static void metaRate(){
-// thirst--;
-// }
+int thirst = 1000;  
+  
+static void metaRate(){
+thirst--;
+}
+
+static void drink(){
+thirst = thirst + 100;
+}
 
 int main() {
   initialize();
   while (wb_robot_step(time_step) != -1) {
     move(10,10);
-    // printf("Initial thirst level: %d\n" , thirst);
-    // metaRate();
-  
+    printf("Initial thirst level: %d\n" , thirst);
+    metaRate();
+    
   int j = 0;
   for (j = 0; j < 8; j++){
     printf("readIR: %d\n ", readIR(j));
   }
-  
-  
+  if (Blue_val >= 150){
+    drink();
+    printf("Thirst =  %d\n", thirst);
+  }
  camera_view();
 }
   return 0;
