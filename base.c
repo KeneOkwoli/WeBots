@@ -101,8 +101,12 @@ for (x = 0; x < width; x++){
     green += wb_camera_image_get_green(cameraData, width, x,y);
     blue += wb_camera_image_get_blue(cameraData, width, x,y);
   }
-}    
-printf("red=%d,green=%d,blue=%d\n",red,green,blue);
+}
+
+red = red/4096;  
+blue = blue/4096;
+green = green/4096  
+printf("red=%d,green=%d,blue=%d\n",red,green,blue;
 
 }
 
