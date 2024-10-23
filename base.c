@@ -87,24 +87,23 @@ return IR_value;
 }
 
 static void camera_view(){
-int x = 0;
-int y = 0;
-int red = 0;
-int blue = 0;
-int green = 0;
+int x;
+int y;
+
 wb_camera_enable(camera,time_step);
 const unsigned char *cameraData = wb_camera_get_image(camera);
-while (x < width){
-  while (y < height){
-    x++;
-    y++;
-    int red = wb_camera_image_get_red(cameraData, width, x,y);
-    int green = wb_camera_image_get_green(cameraData, width, x,y);
-    int blue = wb_camera_image_get_blue(cameraData, width, x,y);
+int red = 0;
+int green = 0;
+int blue = 0;
+for (x = 0; x < width; x++){
+  for(y = 0; y < height; y++){
+    red += wb_camera_image_get_red(cameraData, width, x,y);
+    green += wb_camera_image_get_green(cameraData, width, x,y);
+    blue += wb_camera_image_get_blue(cameraData, width, x,y);
   }
-}
-
+}    
 printf("red=%d,green=%d,blue=%d\n",red,green,blue);
+
 }
 
 
@@ -112,15 +111,23 @@ static void move(int l,int r){
     wb_motor_set_velocity(left_motor, l);
     wb_motor_set_velocity(right_motor, r);}
 
+// int thst = 1000;    
+// static void metaRate(){
+// thirst--;
+// }
+
 int main() {
   initialize();
   while (wb_robot_step(time_step) != -1) {
     move(10,10);
+    // printf("Initial thirst level: %d\n" , thirst);
+    // metaRate();
   
   int j = 0;
   for (j = 0; j < 8; j++){
     printf("readIR: %d\n ", readIR(j));
   }
+  
   
  camera_view();
 }
