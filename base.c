@@ -93,22 +93,44 @@ int y;
 
 wb_camera_enable(camera,time_step);
 const unsigned char *cameraData = wb_camera_get_image(camera);
-int red = 0;
-int green = 0;
-int blue = 0;
+int red1 = 0;
+int green1 = 0;
+int blue1 = 0;
+int red2 = 0;
+int green2 = 0;
+int blue2 = 0;
+int red3 = 0;
+int green3 = 0;
+int blue3 = 0;
+
 for (x = 0; x < width; x++){
   for(y = 0; y < height; y++){
-    red += wb_camera_image_get_red(cameraData, width, x,y);
-    green += wb_camera_image_get_green(cameraData, width, x,y);
-    blue += wb_camera_image_get_blue(cameraData, width, x,y);
+    if (x < width/3 ){
+      red1 += wb_camera_image_get_red(cameraData, width, x,y);}
+    else if (x < width/2) {
+      red2 += wb_camera_image_get_red(cameraData, width, x,y);}
+    else{
+      red3 += wb_camera_image_get_red(cameraData, width, x,y);}
+    if (x < width/ 3 ){
+      green1 += wb_camera_image_get_green(cameraData, width, x,y);}
+    else if (x < width/ 2 ){
+      green2 += wb_camera_image_get_green(cameraData, width, x,y);}
+    else{
+      green3 += wb_camera_image_get_green(cameraData, width, x,y);}
+    if (x < width/3 ){
+      blue1 += wb_camera_image_get_blue(cameraData, width, x,y); }
+    else if (x < width/3 ){
+      blue2 += wb_camera_image_get_blue(cameraData, width, x,y);}
+    else{
+      blue3 += wb_camera_image_get_blue(cameraData, width, x,y);}   
   }
 }
 
-red = red/4096;  
-blue = blue/4096;
-green = green/4096;
-printf("red=%d,green=%d,blue=%d\n",red,green,blue);
-Blue_val = blue;
+red1 = red1/4096;  
+blue1 = blue1/4096;
+green1 = green1/4096;
+printf("red=%d,green=%d,blue=%d\n",red1,green1,blue1);
+Blue_val = blue1;
 }
 
 
@@ -130,18 +152,24 @@ int main() {
   initialize();
   while (wb_robot_step(time_step) != -1) {
     move(10,10);
-    printf("Initial thirst level: %d\n" , thirst);
+    // printf("Initial thirst level: %d\n" , thirst);
     metaRate();
     
   int j = 0;
   for (j = 0; j < 8; j++){
     printf("readIR: %d\n ", readIR(j));
   }
+  if (thirst > 10000){
+    thirst = 5000;
+    }
   if (Blue_val >= 150){
     drink();
-    printf("Thirst =  %d\n", thirst);
   }
+   printf("Thirst =  %d\n", thirst);
  camera_view();
 }
+
+
+
   return 0;
 }
