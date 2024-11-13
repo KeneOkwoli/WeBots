@@ -26,6 +26,13 @@ static WbDeviceTag communication;
 static void initialize() {
   wb_robot_init();
   time_step = wb_robot_get_basic_time_step();
+  communication = wb_robot_get_device("receiver");
+  if (communication != 0){
+    wb_receiver_enable(communication, time_step);
+  }
+  else {
+    printf("Error:");
+    }
   const char khepera_name[] = "ds0";
   char sensors_name[5];
   const double(*temp_matrix)[2];
@@ -124,30 +131,33 @@ int blue3 = 0;
 for (x = 0; x < width; x++){
   for(y = 0; y < height; y++){
     if (x < width/3 ){
-      red1 += wb_camera_image_get_red(cameraData, width, x,y);}
-    else if (x < width/2) {
-      red2 += wb_camera_image_get_red(cameraData, width, x,y);}
-    else{
-      red3 += wb_camera_image_get_red(cameraData, width, x,y);}
-    if (x < width/ 3 ){
-      green1 += wb_camera_image_get_green(cameraData, width, x,y);}
-    else if (x < width/ 2 ){
-      green2 += wb_camera_image_get_green(cameraData, width, x,y);}
-    else{
-      green3 += wb_camera_image_get_green(cameraData, width, x,y);}
-    if (x < width/3 ){
-      blue1 += wb_camera_image_get_blue(cameraData, width, x,y); }
-    else if (x < width/3 ){
+      red1 += wb_camera_image_get_red(cameraData, width, x,y);
+      green1 += wb_camera_image_get_green(cameraData, width, x,y);
+      blue1 += wb_camera_image_get_blue(cameraData, width, x,y);}
+   else if (x < width/2) {
+      red2 += wb_camera_image_get_red(cameraData, width, x,y);
+      green2 += wb_camera_image_get_green(cameraData, width, x,y);
       blue2 += wb_camera_image_get_blue(cameraData, width, x,y);}
     else{
-      blue3 += wb_camera_image_get_blue(cameraData, width, x,y);}   
+      red3 += wb_camera_image_get_red(cameraData, width, x,y);
+      green3 += wb_camera_image_get_green(cameraData, width, x,y);
+      blue3 += wb_camera_image_get_blue(cameraData, width, x,y);}  
   }
 }
 
-red1 = red1/4096;  
-blue1 = blue1/4096;
-green1 = green1/4096;
+red1 = red1/1363;  
+blue1 = blue1/1363;
+green1 = green1/1363;
+red2 = red2/1363;  
+blue2 = blue2/1363;
+green2 = green2/1363;
+red3 = red3/1363;  
+blue3 = blue3/1363;
+green3 = green3/1363;
+
 printf("red=%d,green=%d,blue=%d\n",red1,green1,blue1);
+printf("red=%d,green=%d,blue=%d\n",red2,green2,blue2);
+printf("red=%d,green=%d,blue=%d\n",red3,green3,blue3);
 Blue_val = blue1;
 }
 
@@ -168,7 +178,7 @@ thirst = thirst + 100;
 int main() {
   initialize();
   while (wb_robot_step(time_step) != -1) {
-    move(10,10);
+    move(1,1);
     printf("Initial thirst level: %d\n" , thirst);
     metaRate();
     message();
