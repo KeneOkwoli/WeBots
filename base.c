@@ -1,11 +1,12 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <webots/camera.h>
 #include <webots/distance_sensor.h>
 #include <webots/motor.h>
+#include <webots/receiver.h>
 #include <webots/robot.h>
+#define COMMUNICATION_CHANNEL 1
 
 #define MAX_SENSOR_NUMBER 16
 #define RANGE (1024 / 2)
@@ -20,6 +21,7 @@ static double max_speed = 0.0;
 static double speed_unit = 1.0;
 static int camera_enabled;
 static int width,height;
+static WbDeviceTag communication;
 
 static void initialize() {
   wb_robot_init();
@@ -77,6 +79,8 @@ static void initialize() {
 
 int Blue_val = 0;
 int water = 0;
+int thirst = 1000;
+int health = 1000;
 
 
 static int readIR(sensor_value){
@@ -84,8 +88,22 @@ static int readIR(sensor_value){
 int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 
 return IR_value;
-
 }
+
+static void message(){
+  int message_printed = 0; 
+  if (wb_receiver_get_queue_length(communication) > 0) {
+    const char *buffer = wb_receiver_get_data(communication);
+    if (message_printed != 1) {
+          message_printed = 1;
+        }
+    int redCheck =1;
+    redCheck = strcmp(buffer,"Red");
+    if (redCheck == 0){
+       printf("Red is nearby! \n");
+       }
+     wb_receiver_next_packet(communication);            
+ }}
 
 static void camera_view(){
 int x;
@@ -137,8 +155,7 @@ Blue_val = blue1;
 static void move(int l,int r){
     wb_motor_set_velocity(left_motor, l);
     wb_motor_set_velocity(right_motor, r);}
-
-int thirst = 1000;  
+      
   
 static void metaRate(){
 thirst--;
@@ -152,8 +169,9 @@ int main() {
   initialize();
   while (wb_robot_step(time_step) != -1) {
     move(10,10);
-    // printf("Initial thirst level: %d\n" , thirst);
+    printf("Initial thirst level: %d\n" , thirst);
     metaRate();
+    message();
     
   int j = 0;
   for (j = 0; j < 8; j++){
@@ -168,8 +186,6 @@ int main() {
    printf("Thirst =  %d\n", thirst);
  camera_view();
 }
-
-
 
   return 0;
 }
