@@ -27,12 +27,8 @@ static void initialize() {
   wb_robot_init();
   time_step = wb_robot_get_basic_time_step();
   communication = wb_robot_get_device("receiver");
-  if (communication != 0){
     wb_receiver_enable(communication, time_step);
-  }
-  else {
-    printf("Error:");
-    }
+  
   const char khepera_name[] = "ds0";
   char sensors_name[5];
   const double(*temp_matrix)[2];
@@ -82,13 +78,23 @@ static void initialize() {
   }}
 
     /*  Your code under here. Don't touch the above, unless you are happy to fix it yourself! it. */
-
-
+    
+// My global variables
 int Blue_val = 0;
 int water = 0;
 int thirst = 1000;
 int health = 1000;
+int hunger = 1000;
+    
+static int homeostasis(){
 
+thirst--;
+hunger--;
+if (thirst <=0 || hunger <0 || health <= 0){
+  return false;}
+else {
+  return true;}
+}
 
 static int readIR(sensor_value){
 /* we have 8 IR sensors, code to read one sensor, can you read all 8 without repetition */
@@ -97,6 +103,7 @@ int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 return IR_value;
 }
 
+// Pred Check
 static void message(){
   int message_printed = 0; 
   if (wb_receiver_get_queue_length(communication) > 0) {
@@ -107,6 +114,7 @@ static void message(){
     int redCheck =1;
     redCheck = strcmp(buffer,"Red");
     if (redCheck == 0){
+      health--;
        printf("Red is nearby! \n");
        }
      wb_receiver_next_packet(communication);            
@@ -167,9 +175,9 @@ static void move(int l,int r){
     wb_motor_set_velocity(right_motor, r);}
       
   
-static void metaRate(){
-thirst--;
-}
+//static void metaRate(){
+//thirst--;
+//}
 
 static void drink(){
 thirst = thirst + 100;
@@ -177,10 +185,15 @@ thirst = thirst + 100;
 
 int main() {
   initialize();
-  while (wb_robot_step(time_step) != -1) {
-    move(1,1);
+  if (homeostasis() == false){
+    move(0,0);
+   }
+    printf("Robot has died :( \n");
+  while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
+    move(5,5);
     printf("Initial thirst level: %d\n" , thirst);
-    metaRate();
+    printf("health = %d \n", health);
+    homeostasis();
     message();
     
   int j = 0;
