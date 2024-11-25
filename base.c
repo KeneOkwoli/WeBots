@@ -263,6 +263,7 @@ int main() {
     drink();
   }
   printf("blue val =  %d\n", Blue_val);
+  printf("hunger =  %d\n", hunger);
  camera_view();
 }
 
