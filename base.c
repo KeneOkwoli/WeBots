@@ -87,27 +87,25 @@ static void initialize() {
 
     /*  Your code under here. Don't touch the above, unless you are happy to fix it yourself! it. */
     
-// My global variables
-
-
-  
+// My global variables 
 int Blue_val = 0;
 int water = 0;
 int thirst = 1000;
 int health = 1000;
 int hunger = 1000;
-    
-static int homeostasis(){
+int water_move = 0;
 
+// homeostasis function - if any level reaches 0 the robot stops    
+static int homeostasis(){
 thirst--;
 hunger--;
-if (thirst <=0 || hunger <0 || health <= 0){
+if (thirst <= 0 || hunger <0 || health <= 0){
   return false;}
 else {
   return true;}
 }
 
-static int readIR(sensor_value){
+static int readIR(int sensor_value){
 /* we have 8 IR sensors, code to read one sensor, can you read all 8 without repetition */
 int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 
@@ -135,6 +133,7 @@ static void camera_view(){
 int x;
 int y;
 
+// Left camera colour detection
 wb_camera_enable(cameraL,time_step);
 const unsigned char *cameraDataL = wb_camera_get_image(cameraL);
 int redL = 0;
@@ -150,6 +149,7 @@ for (x = 0; x < width; x++){
   }
 }
 
+// Middle camera colour detection
 wb_camera_enable(cameraM,time_step);
 const unsigned char *cameraDataM = wb_camera_get_image(cameraM);
 int redM = 0;
@@ -165,6 +165,7 @@ for (x = 0; x < width; x++){
   }
 }
 
+// Right camera colour detection
 wb_camera_enable(cameraR,time_step);
 const unsigned char *cameraDataR = wb_camera_get_image(cameraR);
 int redR = 0;
@@ -180,33 +181,51 @@ for (x = 0; x < width; x++){
   }
 }
 
+// Put the RGB values in a normal range and print them
+redL = redL/4096;  
+blueL = blueL/4096;
+greenL = greenL/4096;
+redM = redM/4096;  
+blueM = blueM/4096;
+greenM = greenM/4096;
+redR = redR/4096;  
+blueR = blueR/4096;
+greenR = greenR/4096;
 
-redL = redL/1363;  
-blueL = blueL/1363;
-greenL = greenL/1363;
-redM = redM/1363;  
-blueM = blueM/1363;
-greenM = greenM/1363;
-redR = redR/1363;  
-blueR = blueR/1363;
-greenR = greenR/1363;
+if (blueL > blueM && blueL > blueR){
+  Blue_val = blueL;
+  water_move = 1;
+}
+
+if (blueM > blueL && blueM > blueR){
+  Blue_val = blueM;
+  water_move = 0;
+}
+
+if (blueR > blueM && blueR > blueL){
+  Blue_val = blueR;
+  water_move = 2;
+}
+return Blue_val;
 
 printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
 printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
 printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
-Blue_val = blueL;
+
+
 }
-
-
+// Move function 
 static void move(int l,int r){
     wb_motor_set_velocity(left_motor, l);
-    wb_motor_set_velocity(right_motor, r);}
+    wb_motor_set_velocity(right_motor, r);
+    }
       
   
 //static void metaRate(){
 //thirst--;
 //}
 
+// Drink funciton for water
 static void drink(){
 thirst = thirst + 100;
 }
@@ -215,19 +234,27 @@ int main() {
   initialize();
   if (homeostasis() == false){
     move(0,0);
-   }
     printf("Robot has died :( \n");
+   }
   while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
-    move(5,5);
-    printf("Initial thirst level: %d\n" , thirst);
+    if (water_move == 0){
+      move(5,5);
+  }
+    if (water_move == 1){
+      move(3,5);
+  }
+    if (water_move == 2){
+      move(5,3);
+  }
+    
     printf("health = %d \n", health);
     homeostasis();
     message();
     
-  int j = 0;
-  for (j = 0; j < 8; j++){
-    printf("readIR: %d\n ", readIR(j));
-  }
+ // int j = 0;
+ // for (j = 0; j < 8; j++){
+   // printf("readIR: %d\n ", readIR(j));
+  //}
   if (thirst > 10000){
     thirst = 5000;
     }
