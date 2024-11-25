@@ -192,6 +192,7 @@ redR = redR/4096;
 blueR = blueR/4096;
 greenR = greenR/4096;
 
+// checking blue values from each camera to determiune which way to move
 if (blueL > blueM && blueL > blueR){
   Blue_val = blueL;
   water_move = 1;
@@ -261,7 +262,7 @@ int main() {
   if (Blue_val >= 150){
     drink();
   }
-   printf("Thirst =  %d\n", thirst);
+  printf("blue val =  %d\n", Blue_val);
  camera_view();
 }
 
