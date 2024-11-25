@@ -12,7 +12,7 @@
 #define RANGE (1024 / 2)
 #define BOUND(x, a, b) (((x) < (a)) ? (a) : ((x) > (b)) ? (b) : (x))
 
-static WbDeviceTag sensors[MAX_SENSOR_NUMBER], camera, left_motor, right_motor;
+static WbDeviceTag sensors[MAX_SENSOR_NUMBER], cameraL, cameraM, cameraR, left_motor, right_motor;
 static double matrix[MAX_SENSOR_NUMBER][2];
 static int num_sensors;
 static double range;
@@ -71,15 +71,26 @@ static void initialize() {
   wb_motor_set_velocity(right_motor, 0.0);
   camera_enabled =1;
   if (camera_enabled == 1) {
-    camera = wb_robot_get_device("camera");
-    wb_camera_enable(camera, time_step);
-    width = wb_camera_get_width(camera); // all camera use same 
-    height = wb_camera_get_height(camera);
+    cameraL = wb_robot_get_device("CameraLeft");
+    wb_camera_enable(cameraL, time_step);
+    width = wb_camera_get_width(cameraL); // all camera use same 
+    height = wb_camera_get_height(cameraL);
+    cameraM = wb_robot_get_device("CameraMiddle");
+    wb_camera_enable(cameraM, time_step);
+    width = wb_camera_get_width(cameraM); // all camera use same 
+    height = wb_camera_get_height(cameraM);
+    cameraR = wb_robot_get_device("CameraRight");
+    wb_camera_enable(cameraR, time_step);
+    width = wb_camera_get_width(cameraR); // all camera use same 
+    height = wb_camera_get_height(cameraR);
   }}
 
     /*  Your code under here. Don't touch the above, unless you are happy to fix it yourself! it. */
     
 // My global variables
+
+
+  
 int Blue_val = 0;
 int water = 0;
 int thirst = 1000;
@@ -124,49 +135,66 @@ static void camera_view(){
 int x;
 int y;
 
-wb_camera_enable(camera,time_step);
-const unsigned char *cameraData = wb_camera_get_image(camera);
-int red1 = 0;
-int green1 = 0;
-int blue1 = 0;
-int red2 = 0;
-int green2 = 0;
-int blue2 = 0;
-int red3 = 0;
-int green3 = 0;
-int blue3 = 0;
+wb_camera_enable(cameraL,time_step);
+const unsigned char *cameraDataL = wb_camera_get_image(cameraL);
+int redL = 0;
+int greenL = 0;
+int blueL = 0;
 
 for (x = 0; x < width; x++){
   for(y = 0; y < height; y++){
-    if (x < width/3 ){
-      red1 += wb_camera_image_get_red(cameraData, width, x,y);
-      green1 += wb_camera_image_get_green(cameraData, width, x,y);
-      blue1 += wb_camera_image_get_blue(cameraData, width, x,y);}
-   else if (x < width/2) {
-      red2 += wb_camera_image_get_red(cameraData, width, x,y);
-      green2 += wb_camera_image_get_green(cameraData, width, x,y);
-      blue2 += wb_camera_image_get_blue(cameraData, width, x,y);}
-    else{
-      red3 += wb_camera_image_get_red(cameraData, width, x,y);
-      green3 += wb_camera_image_get_green(cameraData, width, x,y);
-      blue3 += wb_camera_image_get_blue(cameraData, width, x,y);}  
+    if (x < width ){
+      redL += wb_camera_image_get_red(cameraDataL, width, x,y);
+      greenL += wb_camera_image_get_green(cameraDataL, width, x,y);
+      blueL += wb_camera_image_get_blue(cameraDataL, width, x,y);}
   }
 }
 
-red1 = red1/1363;  
-blue1 = blue1/1363;
-green1 = green1/1363;
-red2 = red2/1363;  
-blue2 = blue2/1363;
-green2 = green2/1363;
-red3 = red3/1363;  
-blue3 = blue3/1363;
-green3 = green3/1363;
+wb_camera_enable(cameraM,time_step);
+const unsigned char *cameraDataM = wb_camera_get_image(cameraM);
+int redM = 0;
+int greenM = 0;
+int blueM = 0;
 
-printf("red=%d,green=%d,blue=%d\n",red1,green1,blue1);
-printf("red=%d,green=%d,blue=%d\n",red2,green2,blue2);
-printf("red=%d,green=%d,blue=%d\n",red3,green3,blue3);
-Blue_val = blue1;
+for (x = 0; x < width; x++){
+  for(y = 0; y < height; y++){
+    if (x < width ){
+      redM += wb_camera_image_get_red(cameraDataM, width, x,y);
+      greenM += wb_camera_image_get_green(cameraDataM, width, x,y);
+      blueM += wb_camera_image_get_blue(cameraDataM, width, x,y);}
+  }
+}
+
+wb_camera_enable(cameraR,time_step);
+const unsigned char *cameraDataR = wb_camera_get_image(cameraR);
+int redR = 0;
+int greenR = 0;
+int blueR = 0;
+
+for (x = 0; x < width; x++){
+  for(y = 0; y < height; y++){
+    if (x < width ){
+      redR += wb_camera_image_get_red(cameraDataR, width, x,y);
+      greenR += wb_camera_image_get_green(cameraDataR, width, x,y);
+      blueR += wb_camera_image_get_blue(cameraDataR, width, x,y);}
+  }
+}
+
+
+redL = redL/1363;  
+blueL = blueL/1363;
+greenL = greenL/1363;
+redM = redM/1363;  
+blueM = blueM/1363;
+greenM = greenM/1363;
+redR = redR/1363;  
+blueR = blueR/1363;
+greenR = greenR/1363;
+
+printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
+printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
+printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
+Blue_val = blueL;
 }
 
 
