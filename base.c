@@ -6,7 +6,7 @@
 #include <webots/motor.h>
 #include <webots/receiver.h>
 #include <webots/robot.h>
-#define COMMUNICATION_CHANNEL 1
+#define COMMUNICATION_CHANNEL 1 
 
 #define MAX_SENSOR_NUMBER 16
 #define RANGE (1024 / 2)
@@ -94,16 +94,19 @@ int thirst = 10000;
 int health = 1000;
 int hunger = 8000;
 int water_move = 0;
+int timer = 0;
+int randomx = 3;
+int randomy = 3;
 
 
 // Add a random function to move in random directions
 
 static int Randx(int minX, int maxX, int count) {
-  for (int i = 0; i < count; i++) {
+ // for (int i = 0; i < count; i++) {
     int movex = rand() % (maxX - minX + 1) + minX;
 
 return movex;
-}
+//}
 }
 
 // homeostasis function - if any level reaches 0 the robot stops    
@@ -123,6 +126,10 @@ int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 return IR_value;
 }
 
+
+
+
+
 // Pred Check
 static void message(){
   int message_printed = 0; 
@@ -140,7 +147,7 @@ static void message(){
      wb_receiver_next_packet(communication);            
  }}
 
-static void camera_view(){
+static int camera_view(){
 int x;
 int y;
 
@@ -210,13 +217,13 @@ if (blueL > blueM && blueL > blueR){
   printf("Blue is left\n");
 }
 
-if (blueM > blueL && blueM > blueR){
+else if (blueM > blueL && blueM > blueR){
   Blue_val = blueM;
   water_move = 0;
   printf("Blue is Middle\n");
 }
 
-if (blueR > blueM && blueR > blueL){
+else if (blueR > blueM && blueR > blueL){
   Blue_val = blueR;
   water_move = 2;
   printf("Blue is Right\n");
@@ -247,6 +254,19 @@ static void drink(){
 thirst = thirst + 100;
 }
 
+static void FreeRoam(){
+
+  timer ++;
+  if (timer >= 160){
+    timer = 0;
+    randomx = Randx(2, 7, 10);
+    randomy = Randx(2, 7, 10);
+  }
+  move(randomx,randomy);
+  printf("Freeroam\n");
+  printf("timer = %d\n", timer);
+}
+
 //main loop
 
 int main() {
@@ -256,10 +276,7 @@ int main() {
     printf("Robot has died :( \n");
    }
   while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
-    int minX = 2, maxX = 7, count = 10;
-    Randx(minX, maxX, count);
-    printf("MinX = %d\n", minX);
-    
+    FreeRoam();
     if (water_move == 0){
       move(5,5);
   }
