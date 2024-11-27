@@ -90,14 +90,25 @@ static void initialize() {
 // My global variables 
 int Blue_val = 0;
 int water = 0;
-int thirst = 1000;
+int thirst = 10000;
 int health = 1000;
-int hunger = 1000;
+int hunger = 8000;
 int water_move = 0;
+
+
+// Add a random function to move in random directions
+
+static int Randx(int minX, int maxX, int count) {
+  for (int i = 0; i < count; i++) {
+    int movex = rand() % (maxX - minX + 1) + minX;
+
+return movex;
+}
+}
 
 // homeostasis function - if any level reaches 0 the robot stops    
 static int homeostasis(){
-thirst--;
+thirst-=2;
 hunger--;
 if (thirst <= 0 || hunger <0 || health <= 0){
   return false;}
@@ -196,23 +207,28 @@ greenR = greenR/4096;
 if (blueL > blueM && blueL > blueR){
   Blue_val = blueL;
   water_move = 1;
+  printf("Blue is left\n");
 }
 
 if (blueM > blueL && blueM > blueR){
   Blue_val = blueM;
   water_move = 0;
+  printf("Blue is Middle\n");
 }
 
 if (blueR > blueM && blueR > blueL){
   Blue_val = blueR;
   water_move = 2;
+  printf("Blue is Right\n");
 }
-return Blue_val;
+
 
 printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
 printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
 printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
 
+
+return Blue_val;
 
 }
 // Move function 
@@ -231,6 +247,8 @@ static void drink(){
 thirst = thirst + 100;
 }
 
+//main loop
+
 int main() {
   initialize();
   if (homeostasis() == false){
@@ -238,6 +256,10 @@ int main() {
     printf("Robot has died :( \n");
    }
   while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
+    int minX = 2, maxX = 7, count = 10;
+    Randx(minX, maxX, count);
+    printf("MinX = %d\n", minX);
+    
     if (water_move == 0){
       move(5,5);
   }
@@ -248,7 +270,7 @@ int main() {
       move(5,3);
   }
     
-    printf("health = %d \n", health);
+    //printf("health = %d \n", health);
     homeostasis();
     message();
     
@@ -259,11 +281,12 @@ int main() {
   if (thirst > 10000){
     thirst = 5000;
     }
-  if (Blue_val >= 150){
+  if (Blue_val <= 150){
     drink();
   }
   printf("blue val =  %d\n", Blue_val);
   printf("hunger =  %d\n", hunger);
+  printf("Thirst = %d\n", thirst);
  camera_view();
 }
 
