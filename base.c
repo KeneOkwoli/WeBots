@@ -97,6 +97,15 @@ int water_move = 0;
 int timer = 0;
 int randomx = 3;
 int randomy = 3;
+int redL = 0;
+int blueL = 0;
+int greenL = 0;
+int redM = 0;  
+int blueM = 0;
+int greenM = 0;
+int redR = 0;  
+int blueR = 0;
+int greenR = 0;
 
 
 // Add a random function to move in random directions
@@ -210,7 +219,20 @@ redR = redR/4096;
 blueR = blueR/4096;
 greenR = greenR/4096;
 
+printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
+printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
+printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
+}
+
+// Move function 
+static void move(int l,int r){
+    wb_motor_set_velocity(left_motor, l);
+    wb_motor_set_velocity(right_motor, r);
+}
+
 // checking blue values from each camera to determiune which way to move
+
+static int BlueCheck(){
 if (blueL > blueM && blueL > blueR){
   Blue_val = blueL;
   water_move = 1;
@@ -230,19 +252,20 @@ else if (blueR > blueM && blueR > blueL){
 }
 
 
-printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
-printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
-printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
-
-
 return Blue_val;
 
+if (water_move == 0){
+  move(5,5);
+  }
+if (water_move == 1){
+  move(3,5);
+  }
+if (water_move == 2){
+   move(5,3);
+  }
+
 }
-// Move function 
-static void move(int l,int r){
-    wb_motor_set_velocity(left_motor, l);
-    wb_motor_set_velocity(right_motor, r);
-    }
+
       
   
 //static void metaRate(){
@@ -277,15 +300,10 @@ int main() {
    }
   while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
     FreeRoam();
-    if (water_move == 0){
-      move(5,5);
-  }
-    if (water_move == 1){
-      move(3,5);
-  }
-    if (water_move == 2){
-      move(5,3);
-  }
+    if (thirst < 6000){
+      BlueCheck();
+    }
+
     
     //printf("health = %d \n", health);
     homeostasis();
