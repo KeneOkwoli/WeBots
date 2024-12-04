@@ -156,16 +156,13 @@ static void message(){
      wb_receiver_next_packet(communication);            
  }}
 
-static int camera_view(){
+static void camera_view(){
 int x;
 int y;
 
 // Left camera colour detection
 wb_camera_enable(cameraL,time_step);
 const unsigned char *cameraDataL = wb_camera_get_image(cameraL);
-int redL = 0;
-int greenL = 0;
-int blueL = 0;
 
 for (x = 0; x < width; x++){
   for(y = 0; y < height; y++){
@@ -179,9 +176,6 @@ for (x = 0; x < width; x++){
 // Middle camera colour detection
 wb_camera_enable(cameraM,time_step);
 const unsigned char *cameraDataM = wb_camera_get_image(cameraM);
-int redM = 0;
-int greenM = 0;
-int blueM = 0;
 
 for (x = 0; x < width; x++){
   for(y = 0; y < height; y++){
@@ -195,9 +189,6 @@ for (x = 0; x < width; x++){
 // Right camera colour detection
 wb_camera_enable(cameraR,time_step);
 const unsigned char *cameraDataR = wb_camera_get_image(cameraR);
-int redR = 0;
-int greenR = 0;
-int blueR = 0;
 
 for (x = 0; x < width; x++){
   for(y = 0; y < height; y++){
@@ -233,6 +224,8 @@ static void move(int l,int r){
 // checking blue values from each camera to determiune which way to move
 
 static int BlueCheck(){
+printf("blueL %d\n ",blueL);
+
 if (blueL > blueM && blueL > blueR){
   Blue_val = blueL;
   water_move = 1;
@@ -299,6 +292,7 @@ int main() {
     printf("Robot has died :( \n");
    }
   while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
+    camera_view();
     FreeRoam();
     if (thirst < 6000){
       BlueCheck();
@@ -316,13 +310,13 @@ int main() {
   if (thirst > 10000){
     thirst = 5000;
     }
-  if (Blue_val <= 150){
+  if (Blue_val >= 170){
     drink();
   }
   printf("blue val =  %d\n", Blue_val);
   printf("hunger =  %d\n", hunger);
   printf("Thirst = %d\n", thirst);
- camera_view();
+
 }
 
   return 0;
