@@ -11,6 +11,13 @@
 #define MAX_SENSOR_NUMBER 16
 #define RANGE (1024 / 2)
 #define BOUND(x, a, b) (((x) < (a)) ? (a) : ((x) > (b)) ? (b) : (x))
+#define DARK_GREEN_RED_MIN 100
+#define DARK_GREEN_RED_MAX 120
+#define DARK_GREEN_GREEN_MIN 160
+#define DARK_GREEN_GREEN_MAX 180
+#define DARK_GREEN_BLUE_MIN 120
+#define DARK_GREEN_BLUE_MAX 140
+
 
 static WbDeviceTag sensors[MAX_SENSOR_NUMBER], cameraL, cameraM, cameraR, left_motor, right_motor;
 static double matrix[MAX_SENSOR_NUMBER][2];
@@ -88,6 +95,7 @@ static void initialize() {
     /*  Your code under here. Don't touch the above, unless you are happy to fix it yourself! it. */
     
 // My global variables 
+int Green_val = 0;
 int Blue_val = 0;
 int water = 0;
 int thirst = 10000;
@@ -106,6 +114,11 @@ int greenM = 0;
 int redR = 0;  
 int blueR = 0;
 int greenR = 0;
+int darkGreenL = 0;
+int darkGreenM = 0;
+int darkGreenR = 0;
+
+
 
 
 // Add a random function to move in random directions
@@ -134,9 +147,6 @@ int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 
 return IR_value;
 }
-
-
-
 
 
 // Pred Check
@@ -221,8 +231,67 @@ static void move(int l,int r){
     wb_motor_set_velocity(right_motor, r);
 }
 
-// checking blue values from each camera to determiune which way to move
 
+// Green check for dark green areas as food
+
+static int GreenCheck() {
+    // Reset dark green counts
+    darkGreenL = 0;
+    darkGreenM = 0;
+    darkGreenR = 0;
+
+    // Check if Left camera values are within dark green thresholds
+    if (redL >= DARK_GREEN_RED_MIN && redL <= DARK_GREEN_RED_MAX &&
+        greenL >= DARK_GREEN_GREEN_MIN && greenL <= DARK_GREEN_GREEN_MAX &&
+        blueL >= DARK_GREEN_BLUE_MIN && blueL <= DARK_GREEN_BLUE_MAX) {
+        darkGreenL++;
+        printf("Dark green detected on Left camera.\n");
+    }
+
+    // Check if Middle camera values are within dark green thresholds
+    if (redM >= DARK_GREEN_RED_MIN && redM <= DARK_GREEN_RED_MAX &&
+        greenM >= DARK_GREEN_GREEN_MIN && greenM <= DARK_GREEN_GREEN_MAX &&
+        blueM >= DARK_GREEN_BLUE_MIN && blueM <= DARK_GREEN_BLUE_MAX) {
+        darkGreenM++;
+        printf("Dark green detected on Middle camera.\n");
+    }
+
+    // Check if Right camera values are within dark green thresholds
+    if (redR >= DARK_GREEN_RED_MIN && redR <= DARK_GREEN_RED_MAX &&
+        greenR >= DARK_GREEN_GREEN_MIN && greenR <= DARK_GREEN_GREEN_MAX &&
+        blueR >= DARK_GREEN_BLUE_MIN && blueR <= DARK_GREEN_BLUE_MAX) {
+        darkGreenR++;
+        printf("Dark green detected on Right camera.\n");
+    }
+
+    // Debugging output
+    printf("Dark green pixels detected: Left=%d, Middle=%d, Right=%d\n", darkGreenL, darkGreenM, darkGreenR);
+
+    // printf("Dark Green: %d\n", darkGreenL);
+// if (darkGreenL > darkGreenM && darkGreenL > darkGreenR){
+  // Green_val = darkGreenL;
+  // printf("Dark green is on the left.\n");
+  // move(3, 5); // Turn left  
+// }
+// else if (darkGreenM > darkGreenL && darkGreenM > darkGreenR){
+  // Green_val = darkGreenM;
+  // printf("Dark green is on the middle.\n");
+  // move(5, 5); // Turn left  
+// }
+// else if (darkGreenR > darkGreenL && darkGreenR > darkGreenM){
+  // Green_val = darkGreenR;
+  // printf("Dark green is on the right.\n");
+  // move(5, 3); // Turn left  
+// }
+    // Return total dark green count
+    return darkGreenL + darkGreenM + darkGreenR;
+}
+
+
+
+
+
+// checking blue values from each camera to determiune which way to move
 static int BlueCheck(){
 printf("blueL %d\n ",blueL);
 
@@ -244,9 +313,6 @@ else if (blueR > blueM && blueR > blueL){
   printf("Blue is Right\n");
 }
 
-
-return Blue_val;
-
 if (water_move == 0){
   move(5,5);
   }
@@ -256,7 +322,7 @@ if (water_move == 1){
 if (water_move == 2){
    move(5,3);
   }
-
+return Blue_val;
 }
 
       
@@ -264,6 +330,14 @@ if (water_move == 2){
 //static void metaRate(){
 //thirst--;
 //}
+
+static void eat(){
+hunger += 100;
+if (hunger > 8000){
+  hunger = 8000; 
+}
+printf("Hunger recovered!");
+}
 
 // Drink funciton for water
 static void drink(){
@@ -284,7 +358,6 @@ static void FreeRoam(){
 }
 
 //main loop
-
 int main() {
   initialize();
   if (homeostasis() == false){
@@ -293,12 +366,18 @@ int main() {
    }
   while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
     camera_view();
-    FreeRoam();
     if (thirst < 6000){
-      BlueCheck();
+      BlueCheck(); }
+    else if (hunger < 4000){
+      if (GreenCheck() > 0){
+      printf("Food source found! Now eating... \n");
+      eat(); }
+      else{
+        move(5,5);}
     }
-
-    
+    else{
+      FreeRoam();
+      }
     //printf("health = %d \n", health);
     homeostasis();
     message();
