@@ -17,7 +17,15 @@
 #define DARK_GREEN_GREEN_MAX 180
 #define DARK_GREEN_BLUE_MIN 120
 #define DARK_GREEN_BLUE_MAX 140
+#define MAX_THIRST 7000
+#define MAX_HUNGER 8000
 
+typedef enum {
+    FREE_ROAM,
+    SEARCH_WATER,
+    SEARCH_FOOD,
+    DEAD
+} RobotState;
 
 static WbDeviceTag sensors[MAX_SENSOR_NUMBER], cameraL, cameraM, cameraR, left_motor, right_motor;
 static double matrix[MAX_SENSOR_NUMBER][2];
@@ -29,6 +37,7 @@ static double speed_unit = 1.0;
 static int camera_enabled;
 static int width,height;
 static WbDeviceTag communication;
+RobotState current_state = FREE_ROAM;  // Initial state
 
 static void initialize() {
   wb_robot_init();
@@ -98,7 +107,7 @@ static void initialize() {
 int Green_val = 0;
 int Blue_val = 0;
 int water = 0;
-int thirst = 10000;
+int thirst = 7000;
 int health = 1000;
 int hunger = 8000;
 int water_move = 0;
@@ -331,19 +340,27 @@ return Blue_val;
 //thirst--;
 //}
 
-static void eat(){
-hunger += 100;
-if (hunger > 8000){
-  hunger = 8000; 
-}
-printf("Hunger recovered!");
+// Eat function for food
+static void eat() {
+    if (hunger < MAX_HUNGER) {
+        hunger += 10;
+        printf("Ate food. Hunger: %d\n", hunger);
+    } else {
+        printf("Hunger is at maximum level (%d).\n", MAX_HUNGER);
+        current_state = FREE_ROAM;  // Transition back to FREE_ROAM
+    }
 }
 
 // Drink funciton for water
-static void drink(){
-thirst = thirst + 100;
+static void drink() {
+    if (thirst < MAX_THIRST) {
+        thirst += 10;
+        printf("Drank water. Thirst: %d\n", thirst);
+    } else {
+        printf("Thirst is at maximum level (%d).\n", MAX_THIRST);
+        current_state = FREE_ROAM;  // Transition back to FREE_ROAM
+    }
 }
-
 static void FreeRoam(){
 
   timer ++;
@@ -357,46 +374,71 @@ static void FreeRoam(){
   printf("timer = %d\n", timer);
 }
 
-//main loop
-int main() {
-  initialize();
-  if (homeostasis() == false){
-    move(0,0);
-    printf("Robot has died :( \n");
-   }
-  while (wb_robot_step(time_step) != -1 && homeostasis() == true) {
-    camera_view();
-    if (thirst < 6000){
-      BlueCheck(); }
-    else if (hunger < 4000){
-      if (GreenCheck() > 0){
-      printf("Food source found! Now eating... \n");
-      eat(); }
-      else{
-        move(5,5);}
+static void SearchWater() {
+    printf("State: SEARCH_WATER\n");
+    if (BlueCheck() > 0) {
+        drink();  // Drink and check if maximum thirst level is reached
+    } else {
+        move(5, 5);  // Continue searching
     }
-    else{
-      FreeRoam();
-      }
-    //printf("health = %d \n", health);
-    homeostasis();
-    message();
-    
- // int j = 0;
- // for (j = 0; j < 8; j++){
-   // printf("readIR: %d\n ", readIR(j));
-  //}
-  if (thirst > 10000){
-    thirst = 5000;
-    }
-  if (Blue_val >= 170){
-    drink();
-  }
-  printf("blue val =  %d\n", Blue_val);
-  printf("hunger =  %d\n", hunger);
-  printf("Thirst = %d\n", thirst);
-
 }
 
-  return 0;
+static void SearchFood() {
+    printf("State: SEARCH_FOOD\n");
+    if (GreenCheck() > 0) {
+        printf("Food source found! Now eating...\n");
+        eat();  // Eat and check if maximum hunger level is reached
+    } else {
+        move(5, 5);  // Continue searching
+    }
+}
+
+static void Dead() {
+    printf("State: DEAD\n");
+    move(0, 0);  // Stop all movement
+    printf("Robot has died. Exiting simulation.\n");
+
+}
+//main loop
+int main() {
+    initialize();
+
+    while (wb_robot_step(time_step) != -1) {
+        camera_view();  // Update camera data
+
+        // Check homeostasis and transition to DEAD state if needed
+        if (!homeostasis()) {
+            current_state = DEAD;
+        }
+
+        // State machine
+        switch (current_state) {
+            case FREE_ROAM:
+                FreeRoam();
+                if (thirst < 6000) {
+                    current_state = SEARCH_WATER;
+                } else if (hunger < 4000) {
+                    current_state = SEARCH_FOOD;
+                }
+                break;
+
+            case SEARCH_WATER:
+                SearchWater();
+                break;
+
+            case SEARCH_FOOD:
+                SearchFood();
+                break;
+
+            case DEAD:
+                Dead();
+                break;
+        }
+
+        // Handle communication and other tasks
+        message();
+        printf("Blue Value = %d, Hunger = %d, Thirst = %d\n", Blue_val, hunger, thirst);
+    }
+
+    return 0;
 }
