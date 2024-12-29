@@ -17,6 +17,13 @@
 #define DARK_GREEN_GREEN_MAX 180
 #define DARK_GREEN_BLUE_MIN 120
 #define DARK_GREEN_BLUE_MAX 140
+#define WATER_RED_MIN 40
+#define WATER_RED_MAX 90
+#define WATER_GREEN_MIN 150
+#define WATER_GREEN_MAX 170
+#define WATER_BLUE_MIN 160
+#define WATER_BLUE_MAX 200
+
 #define MAX_THIRST 7000
 #define MAX_HUNGER 8000
 
@@ -105,7 +112,6 @@ static void initialize() {
     
 // My global variables 
 int Green_val = 0;
-int Blue_val = 0;
 int water = 0;
 int thirst = 7000;
 int health = 1000;
@@ -127,6 +133,11 @@ int darkGreenL = 0;
 int darkGreenM = 0;
 int darkGreenR = 0;
 
+// Move function 
+static void move(int l,int r){
+    wb_motor_set_velocity(left_motor, l);
+    wb_motor_set_velocity(right_motor, r);
+}
 
 
 
@@ -171,6 +182,7 @@ static void message(){
     if (redCheck == 0){
       health--;
        printf("Red is nearby! \n");
+       move(15,15);
        }
      wb_receiver_next_packet(communication);            
  }}
@@ -234,12 +246,6 @@ printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
 printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
 }
 
-// Move function 
-static void move(int l,int r){
-    wb_motor_set_velocity(left_motor, l);
-    wb_motor_set_velocity(right_motor, r);
-}
-
 
 // Green check for dark green areas as food
 
@@ -301,38 +307,38 @@ static int GreenCheck() {
 
 
 // checking blue values from each camera to determiune which way to move
-static int BlueCheck(){
-printf("blueL %d\n ",blueL);
+static int BlueCheck() {
+  int water_detected = 0;
+  int direction = -1;  // -1 = no water, 0 = middle, 1 = left, 2 = right
+  // Check if Left camera values match water thresholds
+  if (redL >= WATER_RED_MIN && redL <= WATER_RED_MAX && greenL >= WATER_GREEN_MIN && greenL <= WATER_GREEN_MAX && blueL >= WATER_BLUE_MIN && blueL <= WATER_BLUE_MAX) {
+    printf("Water detected on Left camera.\n");
+    water_detected++;
+    direction = 1;}  // Prioritize left if detected
+    
 
-if (blueL > blueM && blueL > blueR){
-  Blue_val = blueL;
-  water_move = 1;
-  printf("Blue is left\n");
+   // Check if Middle camera values match water thresholds
+  if (redM >= WATER_RED_MIN && redM <= WATER_RED_MAX && greenM >= WATER_GREEN_MIN && greenM <= WATER_GREEN_MAX && blueM >= WATER_BLUE_MIN && blueM <= WATER_BLUE_MAX) {
+    printf("Water detected on Middle camera.\n");
+    water_detected++;
+    direction = 0;} // Middle takes priority over right
+    
+
+    // Check if Right camera values match water thresholds
+  if (redR >= WATER_RED_MIN && redR <= WATER_RED_MAX && greenR >= WATER_GREEN_MIN && greenR <= WATER_GREEN_MAX && blueR >= WATER_BLUE_MIN && blueR <= WATER_BLUE_MAX) {
+    printf("Water detected on Right camera.\n");
+    water_detected++;
+        // Only prioritize right if no middle or left detected
+    direction = 2;}
+        
+    
+
+    // Debugging output
+    printf("Water detected cameras: %d, Direction: %d\n", water_detected, direction);
+
+    return direction;  // Return direction where water is detected
 }
 
-else if (blueM > blueL && blueM > blueR){
-  Blue_val = blueM;
-  water_move = 0;
-  printf("Blue is Middle\n");
-}
-
-else if (blueR > blueM && blueR > blueL){
-  Blue_val = blueR;
-  water_move = 2;
-  printf("Blue is Right\n");
-}
-
-if (water_move == 0){
-  move(5,5);
-  }
-if (water_move == 1){
-  move(3,5);
-  }
-if (water_move == 2){
-   move(5,3);
-  }
-return Blue_val;
-}
 
       
   
@@ -376,12 +382,24 @@ static void FreeRoam(){
 
 static void SearchWater() {
     printf("State: SEARCH_WATER\n");
-    if (BlueCheck() > 0) {
-        drink();  // Drink and check if maximum thirst level is reached
+    int direction = BlueCheck();  // Check for water and get its direction
+
+    if (blueL > blueM && blueL > blueR) {  // Water in the middle
+        move(3, 5);  // Move left
+    } else if (blueM > blueL && blueM > blueR) {  // Water on the left
+        move(5, 5);  // Turn forward
+    } else if (blueR > blueM && blueR > blueL) {  // Water on the right
+        move(5, 3);  // Turn right
     } else {
-        move(5, 5);  // Continue searching
+        FreeRoam();  // Continue searching if no water detected
+    }
+
+    if (direction != -1) {  // If water is detected in any direction
+        drink();  // Attempt to drink
     }
 }
+
+
 
 static void SearchFood() {
     printf("State: SEARCH_FOOD\n");
@@ -396,6 +414,9 @@ static void SearchFood() {
 static void Dead() {
     printf("State: DEAD\n");
     move(0, 0);  // Stop all movement
+    health = 0;
+    thirst = 0;
+    hunger = 0;    
     printf("Robot has died. Exiting simulation.\n");
 
 }
@@ -437,7 +458,7 @@ int main() {
 
         // Handle communication and other tasks
         message();
-        printf("Blue Value = %d, Hunger = %d, Thirst = %d\n", Blue_val, hunger, thirst);
+        printf("Health = %d, Hunger = %d, Thirst = %d\n", health, hunger, thirst);
     }
 
     return 0;
