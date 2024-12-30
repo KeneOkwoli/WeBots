@@ -113,9 +113,9 @@ static void initialize() {
 // My global variables 
 int Green_val = 0;
 int water = 0;
-int thirst = 7000;
+int thirst = 700;
 int health = 1000;
-int hunger = 8000;
+int hunger = 800;
 int water_move = 0;
 int timer = 0;
 int randomx = 3;
@@ -164,9 +164,14 @@ if (thirst > 4500 && thirst <= MAX_THIRST && hunger > 5500 && hunger <= MAX_HUNG
     }
     printf("Health is recovering\n");
  }
- }
+}
+ 
+if (thirst <= 1000 && hunger <= 2000){
+  health --;
+  printf("Critical levels reached. Health now depleting. \n");
+  }
 
-if (thirst <= 0 || hunger <0 || health <= 0){
+if (thirst <= 0 || hunger < 0 || health <= 0){
   return false;}
 else {
   return true;}
