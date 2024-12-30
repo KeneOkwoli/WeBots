@@ -155,6 +155,17 @@ return movex;
 static int homeostasis(){
 thirst-=2;
 hunger--;
+
+if (thirst > 4500 && thirst <= MAX_THIRST && hunger > 5500 && hunger <= MAX_HUNGER){
+  if (health < 1000){
+    health += 10;
+    if (health > 1000){
+      health = 1000;
+    }
+    printf("Health is recovering\n");
+ }
+ }
+
 if (thirst <= 0 || hunger <0 || health <= 0){
   return false;}
 else {
