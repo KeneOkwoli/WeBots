@@ -168,6 +168,14 @@ int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
 return IR_value;
 }
 
+static int wallDetected(){
+  for (int i = 0; i< 8; i++){
+    if (readIR(i) > 50){
+      return 1; // wall detected
+  }
+}
+  return 0; // wall not detected
+}
 
 // Pred Check
 static void message(){
@@ -385,11 +393,11 @@ static void SearchWater() {
     int direction = BlueCheck();  // Check for water and get its direction
 
     if (blueL > blueM && blueL > blueR) {  // Water in the middle
-        move(3, 5);  // Move left
+        move(7, 10);  // Move left
     } else if (blueM > blueL && blueM > blueR) {  // Water on the left
-        move(5, 5);  // Turn forward
+        move(10, 10);  // Turn forward
     } else if (blueR > blueM && blueR > blueL) {  // Water on the right
-        move(5, 3);  // Turn right
+        move(10, 7);  // Turn right
     } else {
         FreeRoam();  // Continue searching if no water detected
     }
@@ -422,38 +430,48 @@ static void Dead() {
 }
 //main loop
 int main() {
-    initialize();
+  initialize();
 
-    while (wb_robot_step(time_step) != -1) {
-        camera_view();  // Update camera data
+  while (wb_robot_step(time_step) != -1) {
+    camera_view();  // Update camera data
 
-        // Check homeostasis and transition to DEAD state if needed
-        if (!homeostasis()) {
-            current_state = DEAD;
-        }
 
+    if (wallDetected() == 1){
+      printf("wall detected. Turning around now.\n");
+      move(-3,-3);
+      wb_robot_step(time_step * 5);
+      move(3,-3);
+      wb_robot_step(time_step * 7);
+      }
+      
+        // Check homeostasis and transition to DEAD state if needed      
+    if (!homeostasis()) {
+      current_state = DEAD;
+        }    
+        
         // State machine
-        switch (current_state) {
-            case FREE_ROAM:
-                FreeRoam();
-                if (thirst < 6000) {
-                    current_state = SEARCH_WATER;
-                } else if (hunger < 4000) {
-                    current_state = SEARCH_FOOD;
+    switch (current_state) {
+      case FREE_ROAM:
+        FreeRoam();
+          if (thirst < 6000) {
+            current_state = SEARCH_WATER;
+                } 
+          else if (hunger < 4000) {
+            current_state = SEARCH_FOOD;
                 }
-                break;
+            break;
 
-            case SEARCH_WATER:
-                SearchWater();
-                break;
+          case SEARCH_WATER:
+            SearchWater();
+            break;
 
-            case SEARCH_FOOD:
-                SearchFood();
-                break;
+          case SEARCH_FOOD:
+            SearchFood();
+            break;
 
-            case DEAD:
-                Dead();
-                break;
+          case DEAD:
+            Dead();
+            break;
         }
 
         // Handle communication and other tasks
