@@ -1,3 +1,6 @@
+// Kenechukwu Okwoli
+// 23010818
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,10 +26,10 @@
 #define WATER_GREEN_MAX 170
 #define WATER_BLUE_MIN 160
 #define WATER_BLUE_MAX 200
-
 #define MAX_THIRST 7000
 #define MAX_HUNGER 8000
 
+// defining enumeration for the different types of states
 typedef enum {
     FREE_ROAM,
     SEARCH_WATER,
@@ -113,9 +116,9 @@ static void initialize() {
 // My global variables 
 int Green_val = 0;
 int water = 0;
-int thirst = 700;
+int thirst = 8000;
 int health = 1000;
-int hunger = 800;
+int hunger = 6000;
 int water_move = 0;
 int timer = 0;
 int randomx = 3;
@@ -177,6 +180,7 @@ else {
   return true;}
 }
 
+// IR sensors
 static int readIR(int sensor_value){
 /* we have 8 IR sensors, code to read one sensor, can you read all 8 without repetition */
 int IR_value = wb_distance_sensor_get_value(sensors[sensor_value]);
@@ -194,7 +198,7 @@ static int wallDetected(){
 }
 
 // Pred Check
-static void message(){
+static void escape(){
   int message_printed = 0; 
   if (wb_receiver_get_queue_length(communication) > 0) {
     const char *buffer = wb_receiver_get_data(communication);
@@ -265,9 +269,9 @@ redR = redR/4096;
 blueR = blueR/4096;
 greenR = greenR/4096;
 
-printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
-printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
-printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
+//printf("red=%d,green=%d,blue=%d\n",redL,greenL,blueL);
+// printf("red=%d,green=%d,blue=%d\n",redM,greenM,blueM);
+// printf("red=%d,green=%d,blue=%d\n",redR,greenR,blueR);
 }
 
 
@@ -306,23 +310,6 @@ static int GreenCheck() {
     // Debugging output
     printf("Dark green pixels detected: Left=%d, Middle=%d, Right=%d\n", darkGreenL, darkGreenM, darkGreenR);
 
-    // printf("Dark Green: %d\n", darkGreenL);
-// if (darkGreenL > darkGreenM && darkGreenL > darkGreenR){
-  // Green_val = darkGreenL;
-  // printf("Dark green is on the left.\n");
-  // move(3, 5); // Turn left  
-// }
-// else if (darkGreenM > darkGreenL && darkGreenM > darkGreenR){
-  // Green_val = darkGreenM;
-  // printf("Dark green is on the middle.\n");
-  // move(5, 5); // Turn left  
-// }
-// else if (darkGreenR > darkGreenL && darkGreenR > darkGreenM){
-  // Green_val = darkGreenR;
-  // printf("Dark green is on the right.\n");
-  // move(5, 3); // Turn left  
-// }
-    // Return total dark green count
     return darkGreenL + darkGreenM + darkGreenR;
 }
 
@@ -364,12 +351,6 @@ static int BlueCheck() {
 }
 
 
-      
-  
-//static void metaRate(){
-//thirst--;
-//}
-
 // Eat function for food
 static void eat() {
     if (hunger < MAX_HUNGER) {
@@ -381,6 +362,7 @@ static void eat() {
     }
 }
 
+
 // Drink funciton for water
 static void drink() {
     if (thirst < MAX_THIRST) {
@@ -391,21 +373,24 @@ static void drink() {
         current_state = FREE_ROAM;  // Transition back to FREE_ROAM
     }
 }
-static void FreeRoam(){
 
+// explore state
+static void FreeRoam(){
+  printf("State: Free Roam\n");
   timer ++;
   if (timer >= 160){
     timer = 0;
-    randomx = Randx(2, 7, 10);
-    randomy = Randx(2, 7, 10);
+    randomx = Randx(10, 19, 10);
+    randomy = Randx(10, 19, 10);
   }
   move(randomx,randomy);
-  printf("Freeroam\n");
-  printf("timer = %d\n", timer);
+  // printf("Freeroam\n");
+  // printf("timer = %d\n", timer);
 }
 
+// thirst state
 static void SearchWater() {
-    printf("State: SEARCH_WATER\n");
+    printf("State: Search Water\n");
     int direction = BlueCheck();  // Check for water and get its direction
 
     if (blueL > blueM && blueL > blueR) {  // Water in the middle
@@ -424,19 +409,32 @@ static void SearchWater() {
 }
 
 
-
+//hunger state
 static void SearchFood() {
-    printf("State: SEARCH_FOOD\n");
+    printf("State: Search Food\n");
+    
+    if (darkGreenL > darkGreenM && darkGreenL > darkGreenR) {
+        printf("Food detected on the left. Moving left.\n");
+        move(7, 10); } // Turn left 
+        
+    if (darkGreenL > darkGreenM && darkGreenL > darkGreenR) {
+        printf("Food detected in front. Moving forward.\n");
+        move(10, 10); } // Move forward   
+        
+    if (darkGreenL > darkGreenM && darkGreenL > darkGreenR) {
+        printf("Food detected on the right. Moving right.\n");
+        move(10, 7);} // Turn right   
+        
+    //checks if food source has been reached                            
     if (GreenCheck() > 0) {
         printf("Food source found! Now eating...\n");
         eat();  // Eat and check if maximum hunger level is reached
-    } else {
-        move(5, 5);  // Continue searching
-    }
+    } 
 }
 
+
 static void Dead() {
-    printf("State: DEAD\n");
+    printf("State: Dead\n");
     move(0, 0);  // Stop all movement
     health = 0;
     thirst = 0;
@@ -451,7 +449,7 @@ int main() {
   while (wb_robot_step(time_step) != -1) {
     camera_view();  // Update camera data
 
-
+    // perimiter wall avoidance
     if (wallDetected() == 1){
       printf("wall detected. Turning around now.\n");
       move(-3,-3);
@@ -469,29 +467,30 @@ int main() {
     switch (current_state) {
       case FREE_ROAM:
         FreeRoam();
-          if (thirst < 6000) {
+          if (thirst < 5000) { // is thirst below optimal level then switch state
             current_state = SEARCH_WATER;
                 } 
-          else if (hunger < 4000) {
+          else if (hunger < 4000) {// is thirst below optimal level then switch state
             current_state = SEARCH_FOOD;
                 }
             break;
 
-          case SEARCH_WATER:
+          case SEARCH_WATER: // search water case calls the search water function
             SearchWater();
             break;
 
-          case SEARCH_FOOD:
+          case SEARCH_FOOD: // search food case calls the search food function
             SearchFood();
             break;
 
-          case DEAD:
+          case DEAD: // this case stops the robot in its place
             Dead();
             break;
         }
 
-        // Handle communication and other tasks
-        message();
+        //Predator avoidance
+        escape();
+        // Display robot stats
         printf("Health = %d, Hunger = %d, Thirst = %d\n", health, hunger, thirst);
     }
 
