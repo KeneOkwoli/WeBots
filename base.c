@@ -118,7 +118,7 @@ int Green_val = 0;
 int water = 0;
 int thirst = 8000;
 int health = 1000;
-int hunger = 6000;
+int hunger = 7000;
 int water_move = 0;
 int timer = 0;
 int randomx = 3;
@@ -159,7 +159,8 @@ static int homeostasis(){
 thirst-=2;
 hunger--;
 
-if (thirst > 4500 && thirst <= MAX_THIRST && hunger > 5500 && hunger <= MAX_HUNGER){
+// health recovery
+if (thirst > 4500 && hunger > 5500){
   if (health < 1000){
     health += 10;
     if (health > 1000){
